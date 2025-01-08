@@ -35,7 +35,11 @@ const FormInput: FC<
             className="absolute right-2 bottom-1/2 translate-y-1/2 z-20 cursor-pointer"
             onClick={() => setIsHidden(!isHidden)}
           >
-            <i className={`text-slate-400 ${isHidden ? "fa fa-eye-slash" : "fa fa-eye"}`}></i>
+            <i
+              className={`text-slate-400 ${
+                isHidden ? "fa fa-eye-slash" : "fa fa-eye"
+              }`}
+            ></i>
           </div>
         )}
         <input
@@ -43,8 +47,8 @@ const FormInput: FC<
           name={id}
           id={id}
           placeholder={placeholder}
-          className={`block w-full px-3 py-2 rounded-lg bg-transparent border border-slate-300 focus:outline-none focus:border-custom-teal ${
-            isError ? "text-red-400 border-red-400" : ""
+          className={`block w-full px-3 py-2 rounded-lg bg-transparent border  focus:outline-none focus:border-custom-teal  ${
+            isError ? "text-red-400 border-red-400" : "border-slate-300"
           } ${isPassword && " pr-7"}`}
           {...props}
         />
