@@ -11,7 +11,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="en">
       <head>
@@ -20,7 +19,10 @@ export default async function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
         ></link>
       </head>
-      <body className={`text-custom-black font-montserrat`}>{children}</body>
+      <body className={`text-custom-black font-montserrat`}>
+        <div id="modal"></div>
+        {children}
+      </body>
     </html>
   );
 }
