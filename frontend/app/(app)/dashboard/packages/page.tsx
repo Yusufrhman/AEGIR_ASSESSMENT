@@ -1,7 +1,10 @@
 "use client";
+
 import Loader from "@/components/Loader";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/table/Table";
+import SearchInput from "@/components/table/SearchInput";
+import FilterSelect from "@/components/table/FilterSelect";
 import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -12,7 +15,10 @@ export default function PackagesPage() {
   const params = useSearchParams();
   const router = useRouter();
   const session = useSession();
-  let currentPage = parseInt(params.get("page") || "1");
+
+  const currentSearch = params.get("search") || "";
+  const currentStatus = params.get("status") || "";
+  const currentPage = parseInt(params.get("page") || "1");
   const limit = 10;
 
   useEffect(() => {
@@ -20,8 +26,9 @@ export default function PackagesPage() {
       router.push("?page=1");
     }
   }, [currentPage]);
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["packages", currentPage],
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["packages", currentPage, currentSearch, currentStatus],
     queryFn: () =>
       fetchData(
         "items/packages",
@@ -39,7 +46,11 @@ export default function PackagesPage() {
             "student.last_name",
           ],
           limit: limit,
-          meta: "total_count",
+          meta: "filter_count",
+          ...(currentSearch && {
+            "filter[student][first_name][_icontains]": currentSearch,
+          }),
+          ...(currentStatus && { "filter[status]": currentStatus }),
         },
         session?.data?.access_token as string
       ),
@@ -53,12 +64,20 @@ export default function PackagesPage() {
     );
   }
 
-  let packagesData = data.data.map((packageData: any) => {
+  if (isError) {
+    return (
+      <section className="min-h-[80svh] flex items-center justify-center">
+        <div>Error loading data.</div>
+      </section>
+    );
+  }
+
+  const packagesData = data.data.map((packageData: any) => {
     return {
       ...packageData,
       student_name:
         packageData.student.first_name + " " + packageData.student.last_name,
-      instrument : packageData.instrument.name,
+      instrument: packageData.instrument.name,
       total_payments: `${packageData.payments.reduce(
         (sum: number, payment: any) => sum + payment.rate,
         0
@@ -77,13 +96,51 @@ export default function PackagesPage() {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-0 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col gap-4 items-center justify-center">
+      {/* Search and Filter Inputs */}
+      <div className="w-full flex items-center justify-between mb-4">
+        <SearchInput
+          defaultValue={currentSearch}
+          onSearch={(value) => {
+            router.push(
+              `?page=1${value ? `&search=${value}` : ""}${
+                currentStatus ? `&status=${currentStatus}` : ""
+              }`
+            );
+          }}
+        />
+        <FilterSelect
+          filter="status"
+          options={[
+            { label: "All", value: "" },
+            { label: "Draft", value: "draft" },
+            { label: "Published", value: "published" },
+            { label: "Archived", value: "archived" },
+          ]}
+          defaultValue={currentStatus}
+          onFilterChange={(value) => {
+            router.push(
+              `?page=1${currentSearch ? `&search=${currentSearch}` : ""}${
+                value ? ` & status= ${value} ` : ""
+              }`
+            );
+          }}
+        />
+      </div>
+
+      {/* Table */}
       <Table data={packagesData} columns={columns} />
+
+      {/* Pagination */}
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.floor(data.meta.total_count / limit)}
+        totalPages={Math.ceil(data.meta.filter_count / limit)}
         onPageChange={(page) => {
-          router.push(`?page=${page}`);
+          router.push(
+            `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${
+              currentStatus ? `&status=${currentStatus}` : ""
+            }`
+          );
         }}
       />
     </section>

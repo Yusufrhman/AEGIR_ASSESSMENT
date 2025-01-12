@@ -1,6 +1,9 @@
 "use client";
+
 import Loader from "@/components/Loader";
 import Pagination from "@/components/Pagination";
+import FilterSelect from "@/components/table/FilterSelect";
+import SearchInput from "@/components/table/SearchInput";
 import Table from "@/components/table/Table";
 import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
@@ -13,10 +16,7 @@ export default function UsersPage({}) {
   const router = useRouter();
   const session = useSession();
 
-  const [searchInput, setSearchInput] = useState(params.get("search") || "");
-  const [currentSearch, setCurrentSearch] = useState(
-    params.get("search") || ""
-  );
+  const currentSearch = params.get("search") || "";
   const currentRole = params.get("role") || "";
   const [currentPage, setCurrentPage] = useState(
     parseInt(params.get("page") || "1")
@@ -50,25 +50,6 @@ export default function UsersPage({}) {
       ),
   });
 
-  const handleSearch = () => {
-    setCurrentSearch(searchInput);
-    router.push(
-      `?page=1${currentRole ? `&role=${currentRole}` : ""}${
-        searchInput ? `&search=${searchInput}` : ""
-      }`
-    );
-    setCurrentPage(1);
-  };
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    router.push(
-      `?page=1${value ? `&role=${value}` : ""}${
-        currentSearch ? `&search=${currentSearch}` : ""
-      }`
-    );
-  };
-
   const columns = [
     { field: "full_name", header: "Full Name" },
     { field: "email", header: "Email" },
@@ -85,35 +66,35 @@ export default function UsersPage({}) {
 
   return (
     <section className="min-h-[80svh] flex flex-col gap-4 items-start justify-center">
-      {/* Search Input */}
+      {/* Search and Filter */}
       <div className="flex items-center justify-start gap-4">
-        <div className="flex items-center">
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Enter name"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            className="border border-gray-300 rounded-l p-2"
-          />
-          <button
-            onClick={handleSearch}
-            className="bg-blue-500 text-white rounded-r px-4 py-2"
-          >
-            Search
-          </button>
-        </div>
+        <SearchInput
+          defaultValue={currentSearch}
+          onSearch={(value) => {
+            router.push(
+              `?page=1${currentRole ? `&role=${currentRole}` : ""}${
+                value ? `&search=${value}` : ""
+              }`
+            );
+          }}
+        />
 
-        <select
-          id="role-filter"
-          value={currentRole}
-          onChange={handleRoleChange}
-          className="border border-gray-300 rounded p-2"
-        >
-          <option value="">All</option>
-          <option value="Student">Student</option>
-          <option value="Teacher">Teacher</option>
-        </select>
+        <FilterSelect
+          filter="role"
+          options={[
+            { label: "All", value: "" },
+            { label: "Student", value: "Student" },
+            { label: "Teacher", value: "Teacher" },
+          ]}
+          defaultValue={currentRole}
+          onFilterChange={(value) => {
+            router.push(
+              `?page=1${value ? `&role=${value}` : ""}${
+                currentSearch ? `&search=${currentSearch}` : ""
+              }`
+            );
+          }}
+        />
       </div>
 
       {isLoading ? (

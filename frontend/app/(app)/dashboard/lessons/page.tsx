@@ -1,7 +1,10 @@
 "use client";
+
 import Loader from "@/components/Loader";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/table/Table";
+import SearchInput from "@/components/table/SearchInput";
+import FilterSelect from "@/components/table/FilterSelect";
 import { fetchData } from "@/lib/services/api";
 import { formattedDate } from "@/lib/utils/date-formatter";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +16,10 @@ export default function LessonsPage() {
   const params = useSearchParams();
   const router = useRouter();
   const session = useSession();
-  let currentPage = parseInt(params.get("page") || "1");
+
+  const currentSearch = params.get("search") || "";
+  const currentStatus = params.get("status") || "";
+  const currentPage = parseInt(params.get("page") || "1");
   const limit = 10;
 
   useEffect(() => {
@@ -22,8 +28,8 @@ export default function LessonsPage() {
     }
   }, [currentPage]);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["lessons", currentPage],
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["lessons", currentPage, currentSearch, currentStatus],
     queryFn: () =>
       fetchData(
         "items/lessons",
@@ -40,7 +46,11 @@ export default function LessonsPage() {
             "start_datetime",
           ],
           limit: limit,
-          meta: "total_count",
+          meta: "filter_count",
+          ...(currentSearch && {
+            "filter[teacher][first_name][_icontains]": currentSearch,
+          }),
+          ...(currentStatus && { "filter[status]": currentStatus }),
         },
         session?.data?.access_token as string
       ),
@@ -53,16 +63,22 @@ export default function LessonsPage() {
       </section>
     );
   }
-  console.log(data.data);
-  let lessonsData = data.data.map((lesson: any) => {
+
+  if (isError) {
+    return (
+      <section className="min-h-[80svh] flex items-center justify-center">
+        <div>Error loading data.</div>
+      </section>
+    );
+  }
+
+  const lessonsData = data.data.map((lesson: any) => {
     return {
       ...lesson,
       package: lesson.package.name,
       teacher_name: lesson.teacher.first_name + " " + lesson.teacher.last_name,
       student_name:
-        lesson.package.student.first_name +
-        " " +
-        lesson.package.student.last_name,
+        lesson.package.student.first_name + " " + lesson.package.student.last_name,
       date: formattedDate(lesson.start_datetime),
     };
   });
@@ -76,13 +92,44 @@ export default function LessonsPage() {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-0 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col gap-4 items-center justify-center">
+      {/* Search and Filter Inputs */}
+      <div className="w-full flex items-center justify-between mb-4">
+        <SearchInput
+          defaultValue={currentSearch}
+          onSearch={(value) => {
+            router.push(
+              `?page=1${value ? `&search=${value}` : ""}${currentStatus ? `&status=${currentStatus}` : ""}`
+            );
+          }}
+        />
+        <FilterSelect
+          filter="status"
+          options={[
+            { label: "All", value: "" },
+            { label: "Attended", value: "attended" },
+            { label: "Absent", value: "absent" },
+          ]}
+          defaultValue={currentStatus}
+          onFilterChange={(value) => {
+            router.push(
+              `?page=1${currentSearch ? `&search=${currentSearch}` : ""}${value ? `&status=${value}` : ""}`
+            );
+          }}
+        />
+      </div>
+
+      {/* Table */}
       <Table data={lessonsData} columns={columns} />
+
+      {/* Pagination */}
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.floor(data.meta.total_count / limit)}
+        totalPages={Math.ceil(data.meta.filter_count / limit)}
         onPageChange={(page) => {
-          router.push(`?page=${page}`);
+          router.push(
+            `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${currentStatus ? `&status=${currentStatus}` : ""}`
+          );
         }}
       />
     </section>

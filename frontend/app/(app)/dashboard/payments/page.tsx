@@ -1,33 +1,43 @@
 "use client";
+
 import Loader from "@/components/Loader";
 import Pagination from "@/components/Pagination";
+import FilterSelect from "@/components/table/FilterSelect";
+import SearchInput from "@/components/table/SearchInput";
 import Table from "@/components/table/Table";
 import { fetchData } from "@/lib/services/api";
 import { formattedDate } from "@/lib/utils/date-formatter";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function PaymentsPage() {
   const params = useSearchParams();
   const router = useRouter();
   const session = useSession();
-  let currentPage = parseInt(params.get("page") || "1");
+
+  const currentSearch = params.get("search") || "";
+  const currentSort = params.get("sort") || "-payment_date";
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(params.get("page") || "1")
+  );
   const limit = 10;
 
   useEffect(() => {
     if (currentPage < 1) {
-      router.push("?page=1");
+      setCurrentPage(1);
+      router.push(`?page=1`);
     }
   }, [currentPage]);
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["payments", currentPage],
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["payments", currentPage, currentSort, currentSearch],
     queryFn: () =>
       fetchData(
         "items/payments",
         {
-          sort: "-payment_date",
+          sort: currentSort,
           page: currentPage,
           fields: [
             "id",
@@ -39,7 +49,10 @@ export default function PaymentsPage() {
             "currency",
           ],
           limit: limit,
-          meta: "total_count",
+          meta: "filter_count",
+          ...(currentSearch && {
+            "filter[package][student][first_name][_icontains]": currentSearch,
+          }),
         },
         session?.data?.access_token as string
       ),
@@ -53,7 +66,15 @@ export default function PaymentsPage() {
     );
   }
 
-  let paymentsData = data.data.map((payment: any) => {
+  if (isError) {
+    return (
+      <section className="min-h-[80svh] flex items-center justify-center">
+        <div>Error loading data.</div>
+      </section>
+    );
+  }
+
+  const paymentsData = data.data.map((payment: any) => {
     return {
       ...payment,
       student_name:
@@ -74,15 +95,55 @@ export default function PaymentsPage() {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-0 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col gap-4 items-start justify-center">
+      {/* Search and Sort */}
+      <div className="flex items-center justify-start gap-4">
+        <SearchInput
+          defaultValue={currentSearch}
+          onSearch={(value) => {
+            router.push(
+              `?page=1&sort=${currentSort}${value ? `&search=${value}` : ""}`
+            );
+          }}
+        />
+
+        <FilterSelect
+          filter="sort"
+          options={[
+            { label: "Sort by date (desc)", value: "-payment_date" },
+            { label: "Sort by date (asc)", value: "payment_date" },
+            { label: "Sort by amount (desc)", value: "-rate" },
+            { label: "Sort by amount (asc)", value: "rate" },
+          ]}
+          defaultValue={currentSort}
+          onFilterChange={(value) => {
+            router.push(
+              `?page=1&sort=${value}${
+                currentSearch ? `&search=${currentSearch}` : ""
+              }`
+            );
+          }}
+        />
+      </div>
+
+      {/* Table */}
       <Table data={paymentsData} columns={columns} />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={Math.floor(data.meta.total_count / limit)}
-        onPageChange={(page) => {
-          router.push(`?page=${page}`);
-        }}
-      />
+
+      {/* Pagination */}
+      <div className="w-full mx-auto">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(data.meta.filter_count / limit)}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            router.push(
+              `?page=${page}&sort=${currentSort}${
+                currentSearch ? `&search=${currentSearch}` : ""
+              }`
+            );
+          }}
+        />
+      </div>
     </section>
   );
 }

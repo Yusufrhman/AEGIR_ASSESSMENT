@@ -20,10 +20,8 @@ const BarGraph = () => {
   const teachersData = data.map((item) => item.totalTeachers);
 
   return (
-    <div className="w-full aspect-[3/2] md:aspect-[5/2] lg:aspect-[7/2] h-full">
+    <div className="w-full aspect-[4/2] md:aspect-[5/2] lg:aspect-[6/2] h-full">
       <BarChart
-        width={500}
-        height={200}
         className="z-10 p-0 h-full  w-full"
         leftAxis={null}
         slotProps={{ legend: { hidden: true } }}
