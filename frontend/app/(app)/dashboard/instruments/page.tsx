@@ -7,7 +7,7 @@ import SearchInput from "@/components/table/SearchInput";
 import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function InstrumentsPage({}) {
@@ -58,7 +58,10 @@ export default function InstrumentsPage({}) {
       </section>
     );
   }
-
+  const totalPages = Math.ceil(data.meta.filter_count / limit);
+  if (currentPage > totalPages) {
+    notFound();
+  }
   const columns = [
     { field: "name", header: "Instrument Name" },
     { field: "teachers_count", header: "Total Teachers" },
@@ -78,12 +81,12 @@ export default function InstrumentsPage({}) {
       </div>
 
       {/* Table */}
-      <Table data={data.data} columns={columns} />
+      <Table currentPage={currentPage} data={data.data} columns={columns} />
 
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(data.meta.filter_count / limit)}
+        totalPages={totalPages}
         onPageChange={(page) => {
           router.push(
             `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}`

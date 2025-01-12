@@ -8,7 +8,7 @@ import FilterSelect from "@/components/table/FilterSelect";
 import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function PackagesPage() {
@@ -71,6 +71,10 @@ export default function PackagesPage() {
       </section>
     );
   }
+  const totalPages = Math.ceil(data.meta.filter_count / limit);
+  if (currentPage > totalPages) {
+    notFound();
+  }
 
   const packagesData = data.data.map((packageData: any) => {
     return {
@@ -129,12 +133,12 @@ export default function PackagesPage() {
       </div>
 
       {/* Table */}
-      <Table data={packagesData} columns={columns} />
+      <Table currentPage={currentPage} data={packagesData} columns={columns} />
 
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(data.meta.filter_count / limit)}
+        totalPages={totalPages}
         onPageChange={(page) => {
           router.push(
             `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${

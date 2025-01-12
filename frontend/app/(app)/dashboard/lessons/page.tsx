@@ -9,7 +9,7 @@ import { fetchData } from "@/lib/services/api";
 import { formattedDate } from "@/lib/utils/date-formatter";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LessonsPage() {
@@ -71,7 +71,10 @@ export default function LessonsPage() {
       </section>
     );
   }
-
+  const totalPages = Math.ceil(data.meta.filter_count / limit);
+  if (currentPage > totalPages) {
+    notFound();
+  }
   const lessonsData = data.data.map((lesson: any) => {
     return {
       ...lesson,
@@ -124,12 +127,12 @@ export default function LessonsPage() {
       </div>
 
       {/* Table */}
-      <Table data={lessonsData} columns={columns} />
+      <Table currentPage={currentPage} data={lessonsData} columns={columns} />
 
       {/* Pagination */}
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(data.meta.filter_count / limit)}
+        totalPages={totalPages}
         onPageChange={(page) => {
           router.push(
             `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${

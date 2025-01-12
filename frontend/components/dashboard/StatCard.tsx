@@ -1,11 +1,11 @@
 import { FC, ReactNode } from "react";
 
 interface StatCardProps {
-  icon: ReactNode; // Ikon yang dapat dikustomisasi
-  title: string; // Judul atau deskripsi
-  value: string | number | React.ReactNode; // Nilai yang akan ditampilkan
-  bgColor?: string; // Warna background utama
-  iconBgColor?: string; // Warna background untuk ikon
+  icon: ReactNode; 
+  title: string; 
+  value: string | number | React.ReactNode; 
+  bgColor?: string; 
+  iconBgColor?: string;
 }
 
 const StatCard: FC<StatCardProps> = ({

@@ -9,7 +9,7 @@ import { fetchData } from "@/lib/services/api";
 import { formattedDate } from "@/lib/utils/date-formatter";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function PaymentsPage() {
@@ -73,7 +73,10 @@ export default function PaymentsPage() {
       </section>
     );
   }
-
+  const totalPages = Math.ceil(data.meta.filter_count / limit);
+  if (currentPage > totalPages) {
+    notFound();
+  }
   const paymentsData = data.data.map((payment: any) => {
     return {
       ...payment,
@@ -127,13 +130,13 @@ export default function PaymentsPage() {
       </div>
 
       {/* Table */}
-      <Table data={paymentsData} columns={columns} />
+      <Table currentPage={currentPage} data={paymentsData} columns={columns} />
 
       {/* Pagination */}
       <div className="w-full mx-auto">
         <Pagination
           currentPage={currentPage}
-          totalPages={Math.ceil(data.meta.filter_count / limit)}
+          totalPages={totalPages}
           onPageChange={(page) => {
             setCurrentPage(page);
             router.push(

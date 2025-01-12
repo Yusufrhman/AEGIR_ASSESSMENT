@@ -8,7 +8,7 @@ import Table from "@/components/table/Table";
 import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { notFound, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function UsersPage({}) {
@@ -30,7 +30,7 @@ export default function UsersPage({}) {
     }
   }, [currentPage]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, isError } = useQuery({
     queryKey: ["users", currentPage, currentRole, currentSearch],
     queryFn: () =>
       fetchData(
@@ -49,6 +49,25 @@ export default function UsersPage({}) {
         session?.data?.access_token as string
       ),
   });
+  if (isLoading) {
+    return (
+      <section className="min-h-[80svh] flex items-center justify-center">
+        <Loader />
+      </section>
+    );
+  }
+
+  if (isError) {
+    return (
+      <section className="min-h-[80svh] flex items-center justify-center">
+        <div>Error loading data.</div>
+      </section>
+    );
+  }
+  const totalPages = Math.ceil(data.meta.filter_count / limit)
+  if (currentPage > totalPages) {
+    notFound();
+  }
 
   const columns = [
     { field: "full_name", header: "Full Name" },
@@ -97,32 +116,24 @@ export default function UsersPage({}) {
         />
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-[50svh]">
-          <Loader />
-        </div>
-      ) : (
-        <>
-          {/* Table */}
-          <Table data={userData} columns={columns} />
+      {/* Table */}
+      <Table currentPage={currentPage} data={userData} columns={columns} />
 
-          {/* Pagination */}
-          <div className="w-full mx-auto">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={Math.ceil(data.meta.filter_count / limit)}
-              onPageChange={(page) => {
-                setCurrentPage(page);
-                router.push(
-                  `?page=${page}${currentRole ? `&role=${currentRole}` : ""}${
-                    currentSearch ? `&search=${currentSearch}` : ""
-                  }`
-                );
-              }}
-            />
-          </div>
-        </>
-      )}
+      {/* Pagination */}
+      <div className="w-full mx-auto">
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={(page) => {
+            setCurrentPage(page);
+            router.push(
+              `?page=${page}${currentRole ? `&role=${currentRole}` : ""}${
+                currentSearch ? `&search=${currentSearch}` : ""
+              }`
+            );
+          }}
+        />
+      </div>
     </section>
   );
 }

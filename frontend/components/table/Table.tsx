@@ -1,4 +1,12 @@
-export default function Table({ data, columns }: { data: any; columns: any }) {
+export default function Table({
+  currentPage,
+  data,
+  columns,
+}: {
+  currentPage: number;
+  data: any;
+  columns: any;
+}) {
   return (
     <div className="overflow-x-auto w-full">
       <table className="min-w-full table-auto text-center text-xs md:text-sm  text-gray-800">
@@ -15,13 +23,13 @@ export default function Table({ data, columns }: { data: any; columns: any }) {
         <tbody>
           {data.map((row: any, index: number) => (
             <tr
-              key={index}
+              key={(currentPage - 1) * 10 + index}
               className={`${
                 index % 2 === 0 ? "bg-teal-50" : "bg-gray-50"
               } hover:bg-teal-100`}
             >
               <td className="px-6 py-2 font-medium text-teal-900">
-                {index + 1}
+                {(currentPage - 1) * 10 + index +1}
               </td>
               {columns.map((col: any, colIndex: number) => (
                 <td key={colIndex} className="px-6 py-2">
