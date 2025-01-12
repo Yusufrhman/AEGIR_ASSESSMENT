@@ -28,7 +28,7 @@ export default function FilterSelect({
       id={`${filter}-filter`}
       value={defaultValue}
       onChange={handleChange}
-      className="border border-gray-300 rounded p-2"
+      className="border border-gray-300 rounded p-2 text-xs md:text-sm lg:text-base"
     >
       {options.map((option) => (
         <option key={option.value} value={option.value}>

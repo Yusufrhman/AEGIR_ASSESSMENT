@@ -92,14 +92,16 @@ export default function LessonsPage() {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-4 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col items-center justify-center">
       {/* Search and Filter Inputs */}
-      <div className="w-full flex items-center justify-between mb-4">
+      <div className="w-full flex  flex-col sm:flex-row items-start justify-between mb-4 gap-2 md:gap-4 my-5">
         <SearchInput
           defaultValue={currentSearch}
           onSearch={(value) => {
             router.push(
-              `?page=1${value ? `&search=${value}` : ""}${currentStatus ? `&status=${currentStatus}` : ""}`
+              `?page=1${value ? `&search=${value}` : ""}${
+                currentStatus ? `&status=${currentStatus}` : ""
+              }`
             );
           }}
         />
@@ -113,7 +115,9 @@ export default function LessonsPage() {
           defaultValue={currentStatus}
           onFilterChange={(value) => {
             router.push(
-              `?page=1${currentSearch ? `&search=${currentSearch}` : ""}${value ? `&status=${value}` : ""}`
+              `?page=1${currentSearch ? `&search=${currentSearch}` : ""}${
+                value ? `&status=${value}` : ""
+              }`
             );
           }}
         />
@@ -128,7 +132,9 @@ export default function LessonsPage() {
         totalPages={Math.ceil(data.meta.filter_count / limit)}
         onPageChange={(page) => {
           router.push(
-            `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${currentStatus ? `&status=${currentStatus}` : ""}`
+            `?page=${page}${currentSearch ? `&search=${currentSearch}` : ""}${
+              currentStatus ? `&status=${currentStatus}` : ""
+            }`
           );
         }}
       />

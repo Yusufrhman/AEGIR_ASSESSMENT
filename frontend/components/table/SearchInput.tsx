@@ -21,7 +21,7 @@ export default function SearchInput({
   };
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center text-xs md:text-sm lg:text-base">
       <input
         id="search-input"
         type="text"

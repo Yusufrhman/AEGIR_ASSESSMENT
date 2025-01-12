@@ -65,9 +65,9 @@ export default function UsersPage({}) {
   });
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-4 items-start justify-center">
+    <section className="min-h-[80svh] flex flex-col items-start justify-center">
       {/* Search and Filter */}
-      <div className="flex items-center justify-start gap-4">
+      <div className="flex flex-col sm:flex-row items-start justify-start gap-2 md:gap-4 my-5">
         <SearchInput
           defaultValue={currentSearch}
           onSearch={(value) => {

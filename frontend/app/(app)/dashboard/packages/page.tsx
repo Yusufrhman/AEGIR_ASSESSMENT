@@ -96,9 +96,9 @@ export default function PackagesPage() {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-4 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col items-center justify-center">
       {/* Search and Filter Inputs */}
-      <div className="w-full flex items-center justify-between mb-4">
+      <div className="w-full flex-col sm:flex-row flex items-start justify-between mb-4 gap-2 md:gap-4 my-5">
         <SearchInput
           defaultValue={currentSearch}
           onSearch={(value) => {

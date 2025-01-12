@@ -66,9 +66,9 @@ export default function InstrumentsPage({}) {
   ];
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-4 items-center justify-center">
+    <section className="min-h-[80svh] flex flex-col items-center justify-center">
       {/* Search Input */}
-      <div className="w-full flex items-center justify-start mb-4">
+      <div className="w-full flex flex-col sm:flex-row items-start justify-start mb-4 gap-2 md:gap-4 my-5">
         <SearchInput
           defaultValue={currentSearch}
           onSearch={(value) => {

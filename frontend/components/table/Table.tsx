@@ -1,7 +1,7 @@
 export default function Table({ data, columns }: { data: any; columns: any }) {
   return (
     <div className="overflow-x-auto w-full">
-      <table className="min-w-full table-auto text-center text-sm text-gray-800">
+      <table className="min-w-full table-auto text-center text-xs md:text-sm  text-gray-800">
         <thead className="bg-teal-700 text-gray-100">
           <tr>
             <th className="px-6 py-3">No</th>
