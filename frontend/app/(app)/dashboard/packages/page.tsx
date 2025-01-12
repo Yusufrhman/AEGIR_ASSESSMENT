@@ -31,10 +31,12 @@ export default function PackagesPage() {
             "id",
             "name",
             "status",
-            "instrument",
+            "instrument.name",
             "duration",
             "lessons_quota",
             "payments.rate",
+            "student.first_name",
+            "student.last_name",
           ],
           limit: limit,
           meta: "total_count",
@@ -54,6 +56,9 @@ export default function PackagesPage() {
   let packagesData = data.data.map((packageData: any) => {
     return {
       ...packageData,
+      student_name:
+        packageData.student.first_name + " " + packageData.student.last_name,
+      instrument : packageData.instrument.name,
       total_payments: `${packageData.payments.reduce(
         (sum: number, payment: any) => sum + payment.rate,
         0
@@ -62,7 +67,8 @@ export default function PackagesPage() {
   });
 
   const columns = [
-    { field: "name", header: "Name" },
+    { field: "student_name", header: "Student" },
+    { field: "name", header: "Package Name" },
     { field: "status", header: "Status" },
     { field: "instrument", header: "Instrument" },
     { field: "duration", header: "Duration" },

@@ -5,6 +5,8 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { ReactQueryClientProvider } from "@/components/ReactQueryClientProvider";
 
+import Header from "@/components/Header";
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -17,7 +19,7 @@ export default async function DashboardLayout({
   return (
     <ReactQueryClientProvider>
       <AdminProvider session={session}>
-        <header className="w-full h-[5rem] bg-custom-teal sticky top-0 z-50"></header>
+        <Header />
         <main className="w-[90%] mx-auto h-full">{children}</main>
       </AdminProvider>
     </ReactQueryClientProvider>

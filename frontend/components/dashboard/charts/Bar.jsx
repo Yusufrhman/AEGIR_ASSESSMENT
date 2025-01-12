@@ -20,9 +20,11 @@ const BarGraph = () => {
   const teachersData = data.map((item) => item.totalTeachers);
 
   return (
-    <div className="w-full max-w-3xl ">
+    <div className="w-full aspect-[3/2] md:aspect-[5/2] lg:aspect-[7/2] h-full">
       <BarChart
-        className="z-10 p-0 "
+        width={500}
+        height={200}
+        className="z-10 p-0 h-full  w-full"
         leftAxis={null}
         slotProps={{ legend: { hidden: true } }}
         xAxis={[{ scaleType: "band", data: xAxisData }]}
@@ -38,7 +40,6 @@ const BarGraph = () => {
             color: "#004d4d", // darker teal for teachers
           },
         ]}
-        height={400}
       />
     </div>
   );

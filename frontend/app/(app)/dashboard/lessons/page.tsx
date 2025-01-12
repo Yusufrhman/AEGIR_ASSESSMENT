@@ -34,6 +34,8 @@ export default function LessonsPage() {
             "package.name",
             "teacher.first_name",
             "teacher.last_name",
+            "package.student.first_name",
+            "package.student.last_name",
             "status",
             "start_datetime",
           ],
@@ -51,19 +53,24 @@ export default function LessonsPage() {
       </section>
     );
   }
-
+  console.log(data.data);
   let lessonsData = data.data.map((lesson: any) => {
     return {
       ...lesson,
       package: lesson.package.name,
       teacher_name: lesson.teacher.first_name + " " + lesson.teacher.last_name,
-      date: formattedDate(lesson.start_datetime)
+      student_name:
+        lesson.package.student.first_name +
+        " " +
+        lesson.package.student.last_name,
+      date: formattedDate(lesson.start_datetime),
     };
   });
 
   const columns = [
-    { field: "package", header: "Package" },
     { field: "teacher_name", header: "Teacher" },
+    { field: "student_name", header: "Student" },
+    { field: "package", header: "Package" },
     { field: "date", header: "Start Date" },
     { field: "status", header: "Status" },
   ];

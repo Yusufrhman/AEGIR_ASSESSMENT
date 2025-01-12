@@ -6,44 +6,68 @@ import { fetchData } from "@/lib/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function UsersPage({}) {
   const params = useSearchParams();
   const router = useRouter();
   const session = useSession();
-  let currentPage = parseInt(params.get("page") || "1");
+
+  const [searchInput, setSearchInput] = useState(params.get("search") || "");
+  const [currentSearch, setCurrentSearch] = useState(
+    params.get("search") || ""
+  );
+  const currentRole = params.get("role") || "";
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(params.get("page") || "1")
+  );
   const limit = 10;
 
   useEffect(() => {
     if (currentPage < 1) {
+      setCurrentPage(1);
       router.push("?page=1");
     }
   }, [currentPage]);
 
-  const { data, isLoading, isError, error } = useQuery({
-    queryKey: ["users", currentPage],
+  const { data, isLoading } = useQuery({
+    queryKey: ["users", currentPage, currentRole, currentSearch],
     queryFn: () =>
       fetchData(
         "users",
         {
           "filter[email][_nnull]": true,
+          ...(currentRole && { "filter[role][name][_eq]": currentRole }),
+          ...(currentSearch && {
+            "filter[first_name][_icontains]": currentSearch,
+          }),
           page: currentPage,
           fields: ["id", "first_name", "last_name", "email", "role.name"],
           limit: limit,
-          meta: "total_count",
+          meta: "filter_count",
         },
         session?.data?.access_token as string
       ),
   });
 
-  if (isLoading) {
-    return (
-      <section className="min-h-[80svh] flex items-center justify-center">
-        <Loader />
-      </section>
+  const handleSearch = () => {
+    setCurrentSearch(searchInput);
+    router.push(
+      `?page=1${currentRole ? `&role=${currentRole}` : ""}${
+        searchInput ? `&search=${searchInput}` : ""
+      }`
     );
-  }
+    setCurrentPage(1);
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    router.push(
+      `?page=1${value ? `&role=${value}` : ""}${
+        currentSearch ? `&search=${currentSearch}` : ""
+      }`
+    );
+  };
 
   const columns = [
     { field: "full_name", header: "Full Name" },
@@ -51,24 +75,73 @@ export default function UsersPage({}) {
     { field: "user_role", header: "Role" },
   ];
 
-  const userData = data.data.map((user: any) => {
+  const userData = data?.data.map((user: any) => {
     return {
       ...user,
-      full_name: user.first_name + " " + user.last_name,
+      full_name: `${user.first_name} ${user.last_name}`,
       user_role: user.role.name,
     };
   });
 
   return (
-    <section className="min-h-[80svh] flex flex-col gap-0 items-center justify-center">
-      <Table data={userData} columns={columns} />
-      <Pagination
-        currentPage={currentPage}
-        totalPages={Math.floor(data.meta.total_count / limit)}
-        onPageChange={(page) => {
-          router.push(`?page=${page}`);
-        }}
-      />
+    <section className="min-h-[80svh] flex flex-col gap-4 items-start justify-center">
+      {/* Search Input */}
+      <div className="flex items-center justify-start gap-4">
+        <div className="flex items-center">
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Enter name"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="border border-gray-300 rounded-l p-2"
+          />
+          <button
+            onClick={handleSearch}
+            className="bg-blue-500 text-white rounded-r px-4 py-2"
+          >
+            Search
+          </button>
+        </div>
+
+        <select
+          id="role-filter"
+          value={currentRole}
+          onChange={handleRoleChange}
+          className="border border-gray-300 rounded p-2"
+        >
+          <option value="">All</option>
+          <option value="Student">Student</option>
+          <option value="Teacher">Teacher</option>
+        </select>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[50svh]">
+          <Loader />
+        </div>
+      ) : (
+        <>
+          {/* Table */}
+          <Table data={userData} columns={columns} />
+
+          {/* Pagination */}
+          <div className="w-full mx-auto">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={Math.ceil(data.meta.filter_count / limit)}
+              onPageChange={(page) => {
+                setCurrentPage(page);
+                router.push(
+                  `?page=${page}${currentRole ? `&role=${currentRole}` : ""}${
+                    currentSearch ? `&search=${currentSearch}` : ""
+                  }`
+                );
+              }}
+            />
+          </div>
+        </>
+      )}
     </section>
   );
 }

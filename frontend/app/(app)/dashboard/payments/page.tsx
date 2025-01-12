@@ -27,10 +27,12 @@ export default function PaymentsPage() {
       fetchData(
         "items/payments",
         {
+          sort: "-payment_date",
           page: currentPage,
           fields: [
             "id",
-            "payment_id",
+            "package.student.first_name",
+            "package.student.last_name",
             "payment_date",
             "package.name",
             "rate",
@@ -54,6 +56,10 @@ export default function PaymentsPage() {
   let paymentsData = data.data.map((payment: any) => {
     return {
       ...payment,
+      student_name:
+        payment.package.student.first_name +
+        " " +
+        payment.package.student.last_name,
       package: payment.package.name,
       date: formattedDate(payment.payment_date),
       amount: payment.rate + " " + payment.currency,
@@ -61,7 +67,7 @@ export default function PaymentsPage() {
   });
 
   const columns = [
-      { field: "payment_id", header: "ID" },
+    { field: "student_name", header: "Student" },
     { field: "date", header: "Date" },
     { field: "package", header: "Package" },
     { field: "amount", header: "Amount" },

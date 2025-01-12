@@ -161,3 +161,45 @@ export async function countPackages(status?: string) {
     throw new Error("Failed to fetch data. Please try again later.");
   }
 }
+export async function countLessons() {
+  try {
+    const session = await getServerSession(options);
+
+    if (!session || !session.access_token) {
+      throw new Error("Session not found or invalid access token.");
+    }
+    const result = await axios.get(
+      `${process.env.NEXT_PUBLIC_DIRECTUS_API}/items/lessons?meta=filter_count&limit=0`,
+      {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      }
+    );
+    return result.data.meta.filter_count;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw new Error("Failed to fetch data. Please try again later.");
+  }
+}
+export async function sumPayment() {
+  try {
+    const session = await getServerSession(options);
+
+    if (!session || !session.access_token) {
+      throw new Error("Session not found or invalid access token.");
+    }
+    const result = await axios.get(
+      `${process.env.NEXT_PUBLIC_DIRECTUS_API}/items/payments?aggregate[sum]=rate`,
+      {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      }
+    );
+    return result.data.data[0].sum.rate;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    throw new Error("Failed to fetch data. Please try again later.");
+  }
+}
